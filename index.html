@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEMORA — Every Frame Holds a Story.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,450;0,9..144,600;1,9..144,450&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --gold:#C9A66B;
+  --rose:#C97B84;
+  --sage:#6E8B7A;
+  --ink:#12101C;
+  --ink-2:#1D1A2B;
+  --ivory:#F4EEE2;
+  --paper:#EFE7D8;
+  --r-sm:10px;
+  --r-md:18px;
+  --r-lg:28px;
+  --dur-fast:180ms;
+  --dur-normal:420ms;
+  --dur-cinematic:900ms;
+  --ease:cubic-bezier(.22,.9,.32,1);
+  --bg:#0D0B15;
+  --bg-2:#171425;
+  --surface: rgba(244,238,226,0.06);
+  --surface-strong: rgba(244,238,226,0.1);
+  --border: rgba(201,166,107,0.28);
+  --text:#F4EEE2;
+  --text-dim: rgba(244,238,226,0.62);
+  --accent: var(--gold);
+  --accent-2: var(--rose);
+  --accent-ink: #E4C489;
+  --accent-ink-2: #E39BA2;
+  --heading-g1:#caa06c; --heading-g2:#eadcc2; --heading-g3:#c97b84;
+  --shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+}
+:root[data-theme="light"]{
+  --bg:#FBF7EF;
+  --bg-2:#F1E9D9;
+  --surface: rgba(60,42,18,0.05);
+  --surface-strong: rgba(60,42,18,0.09);
+  --border: rgba(120,84,40,0.28);
+  --text:#211A10;
+  --text-dim: rgba(33,26,16,0.68);
+  --accent: #7A5A22;
+  --accent-2: #8B3B47;
+  /* darker, higher-contrast versions of gold/rose for use as TEXT on light backgrounds */
+  --accent-ink: #7A5A22;
+  --accent-ink-2: #8B3B47;
+  --heading-g1:#6E4E20; --heading-g2:#3A2A16; --heading-g3:#8B3B47;
+  --shadow: 0 30px 60px -25px rgba(60,40,10,0.18);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth; width:100%; overflow-x:hidden;}
+body{
+  margin:0;
+  width:100%;
+  min-width:320px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Manrope',sans-serif;
+  overflow-x:hidden;
+  transition: background var(--dur-cinematic) var(--ease), color var(--dur-cinematic) var(--ease);
+}
+h1,h2,h3,.serif{ font-family:'Fraunces',serif; }
+a{color:inherit;}
+img{max-width:100%;display:block;}
+.wrap{width:100%; max-width:1240px; margin-left:auto; margin-right:auto; padding:0 32px;}
+section{position:relative;}
+::selection{background:var(--accent);color:var(--ink);}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+}
+
+/* subtle grain overlay */
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:9500;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============ LANDING INTRO ============ */
+#landing{
+  position:fixed;inset:0;z-index:10000;background:#08070C;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  transition:opacity 1.1s var(--ease), visibility 1.1s var(--ease);
+  overflow:hidden;
+}
+#landing.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.landing-glow{
+  position:absolute;inset:-20%;
+  background:radial-gradient(circle at 50% 40%, rgba(201,166,107,0.16), transparent 55%);
+  animation:driftGlow 8s ease-in-out infinite alternate;
+}
+@keyframes driftGlow{ from{transform:scale(1) translateY(0);} to{transform:scale(1.15) translateY(-2%);} }
+.landing-line{
+  position:absolute;left:0;right:0;top:38%;height:1px;
+  background:linear-gradient(90deg, transparent, rgba(201,166,107,0.5), transparent);
+  animation:lineSweep 5s linear infinite;
+}
+@keyframes lineSweep{ 0%{transform:translateX(-30%);} 100%{transform:translateX(30%);} }
+.landing-mark{ position:relative;text-align:center; opacity:0; animation:markIn 1.4s var(--ease) forwards; animation-delay:.4s; z-index:2;}
+@keyframes markIn{ from{opacity:0; letter-spacing:.5em; filter:blur(6px);} to{opacity:1; letter-spacing:.16em; filter:blur(0);} }
+.landing-logo{ width:74px; height:74px; margin:0 auto 18px; color:var(--gold); filter:drop-shadow(0 0 14px rgba(201,166,107,.28)); animation:logoFloat 4s ease-in-out 1.8s infinite; }
+.landing-logo svg{ width:100%; height:100%; overflow:visible; }
+.landing-logo .logo-outline{ stroke-dasharray:128; stroke-dashoffset:128; animation:logoDraw 1.8s var(--ease) .55s forwards; }
+.landing-logo .logo-spokes{ stroke-dasharray:78; stroke-dashoffset:78; animation:logoDraw 1.2s var(--ease) 1.15s forwards; }
+.landing-logo .logo-core{ transform-origin:20px 20px; transform:scale(0); animation:logoCore .8s var(--ease) 1.45s forwards; }
+@keyframes logoDraw{ to{stroke-dashoffset:0;} }
+@keyframes logoCore{ to{transform:scale(1);} }
+@keyframes logoFloat{ 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-5px) rotate(3deg);} }
+@media (prefers-reduced-motion: reduce){ .landing-logo{animation:none;} }
+.landing-mark h1{
+  font-size:clamp(40px,9vw,96px); font-weight:450; margin:0; color:var(--ivory);
+  letter-spacing:.16em; text-transform:uppercase;
+}
+.landing-tag{
+  margin-top:18px; font-size:14px; letter-spacing:.32em; text-transform:uppercase; color:var(--rose);
+  opacity:0; animation:tagIn 1s var(--ease) forwards; animation-delay:1.6s;
+}
+@keyframes tagIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+#landing .landing-mark, #landing .landing-tag{ position:relative; z-index:3; }
+#landing .skip-intro{ z-index:3; }
+.skip-intro{
+  position:absolute; bottom:34px; right:38px; background:none; border:1px solid rgba(244,238,226,.25);
+  color:rgba(244,238,226,.7); font-family:'Manrope'; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  padding:10px 18px; border-radius:30px; cursor:pointer; transition:all var(--dur-fast) var(--ease);
+  opacity:0; animation:tagIn 1s var(--ease) forwards; animation-delay:2.2s;
+}
+.skip-intro:hover{ border-color:var(--gold); color:var(--gold); background:rgba(201,166,107,0.08);}
+
+/* ============ CUSTOM CURSOR ============ */
+#cursor-glow{
+  position:fixed; width:26px;height:26px;border-radius:50%; pointer-events:none; z-index:9999;
+  border:1px solid rgba(201,166,107,.55); transform:translate(-50%,-50%);
+  transition: width var(--dur-fast) var(--ease), height var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  mix-blend-mode:difference;
+}
+#cursor-dot{
+  position:fixed; width:5px;height:5px;border-radius:50%; background:var(--gold); pointer-events:none; z-index:9999;
+  transform:translate(-50%,-50%);
+}
+#cursor-glow.expand{ width:56px;height:56px; background:rgba(201,166,107,.12);}
+@media (hover:none), (pointer:coarse){ #cursor-glow,#cursor-dot{display:none;} }
+
+/* ============ CLICK SPARK ============ */
+.spark{
+  position:fixed; width:6px;height:6px;border-radius:50%; background:var(--gold); pointer-events:none; z-index:9998;
+  animation:sparkOut .6s var(--ease) forwards;
+}
+@keyframes sparkOut{ to{ transform: translate(var(--dx),var(--dy)) scale(0); opacity:0; } }
+
+/* ============ NAVBAR ============ */
+header{
+  position:fixed; top:0; left:0; right:0; z-index:400; padding:18px 0;
+  backdrop-filter: blur(16px) saturate(140%);
+  background: linear-gradient(to bottom, rgba(13,11,21,.55), rgba(13,11,21,0));
+  transition: background var(--dur-cinematic) var(--ease), padding var(--dur-normal) var(--ease);
+}
+:root[data-theme="light"] header{ background:linear-gradient(to bottom, rgba(246,240,228,.7), rgba(246,240,228,0)); }
+header.scrolled{ padding:10px 0; background:rgba(13,11,21,.72); box-shadow:0 10px 30px rgba(0,0,0,.25);}
+:root[data-theme="light"] header.scrolled{ background:rgba(246,240,228,.86); }
+.nav-inner{display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Fraunces';font-size:20px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;user-select:none;}
+.logo svg{width:26px;height:26px;}
+nav.links{display:flex;gap:6px;}
+nav.links a{
+  position:relative; padding:9px 16px; font-size:13px; letter-spacing:.06em; text-decoration:none;
+  color:var(--text-dim); border-radius:999px; border:1px solid transparent; overflow:hidden;
+  transition: color var(--dur-fast) var(--ease);
+}
+nav.links a::before{
+  content:''; position:absolute; inset:0; border-radius:999px; padding:1px;
+  background:conic-gradient(from 0deg, var(--gold), var(--rose), var(--sage), var(--gold));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:0; transition:opacity var(--dur-normal) var(--ease); animation:spin 5s linear infinite paused;
+}
+nav.links a:hover::before{ opacity:1; animation-play-state:running;}
+nav.links a:hover{ color:var(--text); background:var(--surface);}
+@keyframes spin{ to{ transform:rotate(360deg);} }
+.nav-right{display:flex;align-items:center;gap:14px;}
+.theme-toggle{
+  width:52px;height:28px;border-radius:20px;border:1px solid var(--border);
+  background:var(--surface); position:relative; cursor:pointer;
+}
+.theme-toggle .knob{
+  position:absolute; top:2px; left:2px; width:22px;height:22px;border-radius:50%;
+  background:var(--gold); display:flex;align-items:center;justify-content:center;font-size:12px;
+  transition: transform var(--dur-normal) var(--ease); box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+:root[data-theme="light"] .theme-toggle .knob{ transform:translateX(24px); }
+.hamburger{display:none;width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text);}
+
+/* ============ GLOW BUTTONS ============ */
+.btn{
+  position:relative; display:inline-flex; align-items:center; gap:8px; padding:15px 30px; border-radius:999px;
+  font-family:'Manrope'; font-weight:600; font-size:13.5px; letter-spacing:.04em; cursor:pointer;
+  border:1px solid var(--border); background:var(--surface); color:var(--text); overflow:hidden; text-decoration:none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-normal) var(--ease), background var(--dur-normal) var(--ease);
+}
+.btn::before{
+  content:''; position:absolute; inset:0; opacity:0; border-radius:999px;
+  background:linear-gradient(120deg, rgba(201,166,107,.35), rgba(201,123,132,.35));
+  transition:opacity var(--dur-normal) var(--ease);
+}
+.btn span{position:relative;z-index:1;}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 14px 34px -12px rgba(201,166,107,.45);}
+.btn:hover::before{opacity:1;}
+.btn.primary{ background:linear-gradient(120deg, var(--gold), var(--rose)); color:#171123; border-color:transparent;}
+.btn.primary:hover{ box-shadow:0 18px 40px -14px rgba(201,166,107,.6);}
+.btn.ghost{background:transparent;}
+.btn.small{padding:10px 18px;font-size:12px;}
+
+/* ============ HERO ============ */
+#hero{ min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding-top:120px; padding-bottom:80px;}
+.hero-backdrop{ position:absolute; inset:-28px; overflow:hidden; z-index:0; filter:blur(10px); transform:scale(1.06); opacity:.5; }
+.hero-backdrop img{ width:100%; height:100%; object-fit:cover; display:block; }
+.drift-wall{ position:absolute; inset:0; overflow:hidden; z-index:0; perspective:1600px;}
+.drift-card{
+  position:absolute; border-radius:6px; padding:10px 10px 26px; background:#F7F2E6;
+  box-shadow:0 24px 50px rgba(0,0,0,.4), 0 2px 0 rgba(255,255,255,.5) inset;
+  will-change:transform; transform-style:preserve-3d;
+}
+.drift-card .ph{ width:100%;height:100%;border-radius:2px; overflow:hidden;}
+.drift-card img{width:100%;height:100%;object-fit:cover; display:block;}
+.drift-card.tier-far{ filter:blur(1.5px); }
+.drift-card.tier-near{ box-shadow:0 30px 60px rgba(0,0,0,.5), 0 2px 0 rgba(255,255,255,.5) inset; }
+:root[data-theme="light"] .drift-card{ box-shadow:0 18px 34px rgba(90,60,20,.18), 0 2px 0 rgba(255,255,255,.6) inset; }
+:root[data-theme="light"] .drift-card.tier-near{ box-shadow:0 22px 40px rgba(90,60,20,.22), 0 2px 0 rgba(255,255,255,.6) inset; }
+.hero-scrim{
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  background: radial-gradient(ellipse 60% 55% at 50% 46%, var(--bg) 0%, rgba(0,0,0,0) 72%);
+  opacity:.85;
+}
+:root[data-theme="light"] .hero-scrim{ opacity:.92; }
+.hero-content{ position:relative; z-index:2; text-align:center;}
+.eyebrow-tag{ font-size:13px; letter-spacing:.28em; color:var(--accent-ink-2); margin-bottom:22px; font-weight:600; }
+.masked-heading{
+  font-family:'Fraunces'; font-weight:500; line-height:.94; margin:0; text-transform:uppercase;
+  font-size:clamp(52px,11vw,148px);
+  background-image: linear-gradient(120deg, var(--heading-g1), var(--heading-g2), var(--heading-g3), var(--heading-g1));
+  background-size:300% 300%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation: maskShift 9s ease-in-out infinite;
+  letter-spacing:-.01em;
+}
+@keyframes maskShift{ 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
+.hero-sub{margin-top:8px;}
+.typewriter-line{
+  margin-top:30px; font-size:19px; color:var(--text-dim); font-family:'Fraunces'; font-style:italic; min-height:30px;
+}
+.typewriter-line .cursor-bar{ display:inline-block; width:2px; height:20px; background:var(--gold); margin-left:3px; vertical-align:-3px; animation:blink 1s steps(1) infinite;}
+@keyframes blink{ 50%{opacity:0;} }
+.hero-ctas{ display:flex; gap:16px; justify-content:center; margin-top:44px; flex-wrap:wrap;}
+
+/* ============ SECTION HEADERS ============ */
+.section-head{ text-align:center; max-width:640px; margin:0 auto 56px;}
+.section-head .kicker{ font-size:13px; letter-spacing:.24em; color:var(--accent-ink-2); margin-bottom:14px; font-weight:600;}
+.section-head h2{ font-size:clamp(32px,5vw,52px); margin:0 0 14px; font-weight:450;}
+.section-head p{ color:var(--text-dim); font-size:16px; line-height:1.65; margin:0;}
+.section-pad{ padding:120px 0;}
+
+/* ============ FEATURED STRIP ============ */
+.featured-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+.feat-card{
+  border-radius:var(--r-md); overflow:hidden; aspect-ratio:3/4; position:relative; cursor:pointer;
+  box-shadow:var(--shadow); transition:transform var(--dur-normal) var(--ease);
+}
+.feat-card:hover{ transform:translateY(-8px);}
+.feat-card img{width:100%;height:100%;object-fit:cover; transition:transform 1s var(--ease);}
+.feat-card:hover img{ transform:scale(1.08);}
+.feat-caption{
+  position:absolute;left:0;right:0;bottom:0;padding:18px; background:linear-gradient(to top, rgba(10,8,15,.9), transparent);
+  font-family:'Fraunces'; font-size:16px; color:#F4EEE2;
+}
+
+/* ============ FAMILY TREE ============ */
+#family{ background:radial-gradient(circle at 50% 0%, var(--surface), transparent 60%);}
+.tree{ display:flex; flex-direction:column; align-items:center; gap:70px; position:relative;}
+.tree-row{ display:flex; gap:60px; flex-wrap:wrap; justify-content:center; position:relative;}
+.tree-branch{ display:flex; flex-direction:column; align-items:center; gap:56px; position:relative;}
+.branch-pair{ display:flex; gap:70px; flex-wrap:wrap; justify-content:center;}
+.tree-connector{ width:1px; height:44px; background:linear-gradient(to bottom, var(--border), transparent); }
+.tree-hline{ height:1px; background:var(--border); }
+.fam-card{
+  width:172px; height:286px; border-radius:var(--r-md); padding:16px 16px 20px;
+  background:var(--surface); border:1px solid var(--border); text-align:center; cursor:pointer;
+  position:relative; overflow:hidden; display:flex; flex-direction:column;
+  transition: transform var(--dur-normal) var(--ease), box-shadow var(--dur-normal) var(--ease), border-color var(--dur-normal) var(--ease);
+}
+.fam-card::after{
+  content:''; position:absolute; inset:0; border-radius:var(--r-md); padding:1px;
+  background:linear-gradient(140deg, var(--gold), transparent 40%, var(--rose));
+  opacity:0; transition:opacity var(--dur-normal) var(--ease);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+}
+.fam-card:hover{ transform:translateY(-8px) scale(1.03); box-shadow:0 24px 46px -18px rgba(0,0,0,.5);}
+.fam-card:hover::after{ opacity:1;}
+.fam-photo{ width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden; margin-bottom:14px;}
+.fam-photo img{ width:100%;height:100%;object-fit:cover; transition:transform var(--dur-cinematic) var(--ease);}
+.fam-card:hover .fam-photo img{ transform:scale(1.1) rotate(1deg);}
+.fam-name{
+  font-family:'Fraunces'; font-size:16.5px; font-weight:500; line-height:1.2; min-height:40px; display:flex; align-items:center; justify-content:center; transition:letter-spacing var(--dur-normal) var(--ease), color var(--dur-normal) var(--ease);
+}
+.fam-card:hover .fam-name{ letter-spacing:.03em; color:var(--accent-ink);}
+.fam-role{
+  font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-top:4px;
+  transition:transform var(--dur-normal) var(--ease), opacity var(--dur-normal) var(--ease);
+}
+.fam-card:hover .fam-role{ transform:translateY(-3px);}
+.fam-mem{ margin-top:10px; font-size:12px; color:var(--accent-ink-2); font-weight:600; opacity:0; transform:translateY(6px); transition:all var(--dur-normal) var(--ease);}
+.fam-card:hover .fam-mem{ opacity:1; transform:translateY(0);}
+
+/* Family detail panel */
+.panel-overlay{ position:fixed; inset:0; background:rgba(6,5,10,.72); backdrop-filter:blur(6px); z-index:2000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity var(--dur-normal) var(--ease);}
+.panel-overlay.show{ opacity:1; pointer-events:auto;}
+.panel{
+  width:min(520px,90vw); background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:36px; text-align:center; transform:translateY(30px) scale(.96); transition:transform var(--dur-normal) var(--ease); box-shadow:var(--shadow);
+}
+.panel-overlay.show .panel{ transform:translateY(0) scale(1);}
+.panel img{ width:150px;height:150px;border-radius:50%; object-fit:cover; margin:0 auto 20px; border:3px solid var(--border);}
+.panel h3{ margin:0 0 4px; font-size:26px;}
+.panel .role{ color:var(--accent-ink-2); font-size:13px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; margin-bottom:16px;}
+.panel p.desc{ color:var(--text-dim); line-height:1.7; margin-bottom:20px;}
+.panel .stats{ display:flex; justify-content:center; gap:34px; margin-bottom:24px;}
+.panel .stats div b{ display:block; font-family:'Fraunces'; font-size:22px; color:var(--accent-ink);}
+.panel .stats div span{ font-size:12px; color:var(--text-dim); letter-spacing:.06em;}
+
+/* ============ GALLERY ============ */
+.gallery-toolbar{ display:flex; flex-direction: column;flex-wrap:wrap; gap:14px; align-items:center; justify-content:center; margin-bottom:38px;}
+.gallery-toolbar .search-box{order:-1}
+.chip-row{ display:flex; gap:10px; flex-wrap:wrap;}
+.chip{padding:9px 18px; border-radius:999px; border:1px solid var(--border); background:var(--surface); font-size:13px; cursor:pointer; color:var(--text-dim); transition:var(--dur-fast) var(--ease);}
+.chip.active, .chip:hover{ background:var(--accent); color:#181021; border-color:transparent;}
+.search-box{
+display: flex; align-items: center; gap:8px; padding:10px 16px; border-radius:999px; border:1px solid var(--border);
+background: var(--surface); min-width:230px;
+}
+.search-box input{ background:none; border:none; outline:none; color:var(--text); font-family:'Manrope'; font-size:13.5px; width:100%;}
+.gallery-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:22px;
+}
+.mcard{ aspect-ratio:3/4; perspective:1500px; opacity:0; transform:translateY(36px) scale(.96); filter:blur(6px); transition:opacity .7s var(--ease), transform .7s var(--ease), filter .7s var(--ease);}
+.mcard.in{ opacity:1; transform:translateY(0) scale(1); filter:blur(0);}
+.mcard-inner{ position:relative; width:100%;height:100%; transform-style:preserve-3d; transition:transform .8s var(--ease); border-radius:var(--r-md); cursor:pointer;}
+.mcard.flipped .mcard-inner{ transform:rotateY(180deg);}
+.mface{ position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--r-md); overflow:hidden; box-shadow:var(--shadow);}
+.mfront img{ width:100%;height:100%;object-fit:cover; background:var(--bg-2); transition:transform .8s var(--ease), opacity .4s ease;}
+.mcard.viewing{ z-index:10; transform:translateY(-4px) scale(1.08);}
+.mcard.viewing .mfront img{ object-fit:contain;}
+.mcard:hover .mfront img{ transform:scale(1.07);}
+.mfront .tag{ position:absolute; top:12px; right:12px; background:rgba(10,8,15,.6); backdrop-filter:blur(4px); padding:6px 12px; border-radius:999px; font-size:11px; letter-spacing:.06em; color:#F4EEE2;}
+.mfront .like-btn{ position:absolute; top:12px; left:12px; width:34px;height:34px;border-radius:50%; background:rgba(10,8,15,.5); backdrop-filter:blur(4px); border:none; color:#fff; font-size:16px; display:flex;align-items:center;justify-content:center; cursor:pointer; transition:transform var(--dur-fast) var(--ease);}
+.mfront .like-btn.liked{ color:var(--rose); animation:heartPop .4s var(--ease);}
+@keyframes heartPop{ 0%{transform:scale(1);} 40%{transform:scale(1.5);} 100%{transform:scale(1);} }
+.mfront .info-strip{
+  position:absolute; left:0;right:0;bottom:0; padding:16px; background:linear-gradient(to top, rgba(8,6,12,.9), transparent);
+  transform:translateY(12px); opacity:0; transition:all var(--dur-normal) var(--ease);
+}
+.mcard:hover .info-strip{ opacity:1; transform:translateY(0);}
+.mfront .info-strip .t{ font-family:'Fraunces'; font-size:15px; color:#F4EEE2;}
+.mfront .info-strip .d{ font-size:11.5px; color:rgba(244,238,226,.72); margin-top:2px;}
+.mback{ transform:rotateY(180deg); background:var(--bg-2); border:1px solid var(--border); padding:22px; display:flex; flex-direction:column; justify-content:center; gap:8px;}
+.mback .heart{ color:var(--accent-ink-2); font-size:14px; font-weight:600;}
+.mback .mtitle{ font-family:'Fraunces'; font-size:17px; margin:2px 0 6px;}
+.mback .desc{ font-size:12.8px; color:var(--text-dim); line-height:1.55; flex:1;}
+.mback .meta{ font-size:11.5px; color:var(--text-dim); display:flex; flex-direction:column; gap:4px; margin-top:6px;}
+.flip-hint{ position:absolute; z-index:5; bottom:10px; right:14px; border:0; padding:0; background:none; font:inherit; font-size:10.5px; color:var(--text-dim); opacity:.6; cursor:pointer;}
+.gallery-empty{ text-align:center; color:var(--text-dim); padding:60px 0;}
+
+/* recycle bin row */
+.bin-item{ display:flex; align-items:center; gap:16px; padding:14px; border:1px solid var(--border); border-radius:14px; background:var(--surface); margin-bottom:12px;}
+.bin-item img{ width:64px;height:64px;border-radius:10px;object-fit:cover;}
+.bin-item .meta{flex:1;}
+.bin-item .meta .n{font-family:'Fraunces';font-size:15px;}
+.bin-item .meta .d{font-size:12px;color:var(--text-dim);}
+.bin-actions{ display:flex; gap:8px;}
+
+/* ============ LIGHTBOX ============ */
+#lightbox{ position:fixed; inset:0; background:rgba(4,3,7,.94); z-index:3000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity var(--dur-normal) var(--ease);}
+#lightbox.show{ opacity:1; pointer-events:auto;}
+.lb-stage{ max-width:min(84vw,1000px); max-height:80vh; overflow:hidden; border-radius:12px;}
+.lb-stage img{ max-width:100%; max-height:80vh; object-fit:contain; transition:transform var(--dur-normal) var(--ease); transform-origin:center;}
+.lb-close{
+  position:absolute; top:26px; right:30px; width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(244,238,226,.3); background:rgba(244,238,226,.05); cursor:pointer; color:var(--ivory);
+  display:flex;align-items:center;justify-content:center; transition:all var(--dur-fast) var(--ease);
+}
+.lb-close:hover{ background:var(--gold); color:#181021; transform:rotate(90deg); border-color:transparent;}
+.lb-nav{ position:absolute; top:50%; transform:translateY(-50%); width:52px;height:52px;border-radius:50%; border:1px solid rgba(244,238,226,.25); background:rgba(244,238,226,.05); color:var(--ivory); cursor:pointer; font-size:20px; transition:all var(--dur-fast) var(--ease);}
+.lb-nav:hover{ background:var(--gold); color:#181021; border-color:transparent;}
+.lb-prev{left:26px;} .lb-next{right:26px;}
+.lb-controls{ position:absolute; bottom:28px; left:50%; transform:translateX(-50%); display:flex; gap:10px; background:rgba(244,238,226,.06); padding:8px; border-radius:999px; border:1px solid rgba(244,238,226,.2);}
+.lb-controls button{ width:38px;height:38px;border-radius:50%;border:none;background:transparent;color:var(--ivory);cursor:pointer;font-size:15px; transition:background var(--dur-fast) var(--ease);}
+.lb-controls button:hover{ background:rgba(244,238,226,.18);}
+.lb-caption{ position:absolute; bottom:90px; left:50%; transform:translateX(-50%); text-align:center; color:rgba(244,238,226,.78); font-size:13px;}
+
+/* ============ CREATE / COLLAGE ============ */
+.collage-layouts{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px;}
+.collage-builder{ display:grid; grid-template-columns:minmax(230px,.65fr) minmax(500px,1.35fr); gap:34px; align-items:center;}
+.collage-controls{ padding:24px; border:1px solid var(--border); border-radius:var(--r-lg); background:var(--surface);}
+.collage-controls h3{ margin:0 0 8px; font-size:24px; font-weight:450;}
+.collage-controls p{ margin:0 0 20px; color:var(--text-dim); font-size:13px; line-height:1.6;}
+.collage-upload{ display:block; border:1px dashed var(--border); border-radius:14px; padding:18px; cursor:pointer; text-align:center; transition:all var(--dur-fast) var(--ease);}
+.collage-upload:hover,.collage-upload.dragover{ border-color:var(--gold); background:rgba(201,166,107,.1);}
+.collage-upload strong{ display:block; color:var(--accent-ink); font-size:13px; margin-bottom:4px;}
+.collage-upload span{ display:block; color:var(--text-dim); font-size:11px; line-height:1.5;}
+.collage-upload input{ position:absolute; width:1px; height:1px; opacity:0;}
+.collage-photo-count{ color:var(--accent-ink-2); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-top:14px;}
+.collage-photo-list{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px;}
+.collage-photo-item{ position:relative; aspect-ratio:1; overflow:hidden; border:1px solid var(--border); border-radius:9px; background:var(--bg-2);}
+.collage-photo-item img{ width:100%; height:100%; object-fit:cover; transform:scale(var(--photo-zoom,1)); transition:transform var(--dur-fast) var(--ease);}
+.collage-photo-actions{ position:absolute; left:4px; right:4px; bottom:4px; display:flex; justify-content:space-between; gap:3px;}
+.collage-photo-actions button{ width:25px; height:25px; padding:0; border:1px solid rgba(244,238,226,.35); border-radius:50%; background:rgba(8,6,12,.72); color:var(--ivory); cursor:pointer; font-size:14px; line-height:1;}
+.collage-photo-actions button:hover{ background:var(--gold); color:#181021; border-color:transparent;}
+.collage-photo-actions .remove-photo{ color:#f1a7a7;}
+.laptop-stage{ min-width:0; padding:12px 4%;}
+.preview-mode{ display:flex; justify-content:center; gap:8px; margin-bottom:14px;}
+.preview-mode .chip{ min-width:92px;}
+.laptop-screen{ position:relative; padding:8px; border:8px solid #151519; border-bottom-width:13px; border-radius:15px 15px 4px 4px; background:#050506; box-shadow:0 26px 48px rgba(0,0,0,.48), inset 0 1px rgba(255,255,255,.22); cursor:zoom-in;}
+.laptop-screen.clickable{ cursor:zoom-in;}
+.laptop-camera{ position:absolute; top:3px; left:50%; width:4px; height:4px; border-radius:50%; background:#25252a; transform:translateX(-50%); z-index:2;}
+.collage-canvas-wrap{ background:#0b0910; border:1px solid rgba(244,238,226,.12); border-radius:7px; padding:12px; display:flex; justify-content:center;}
+#collageCanvas{ width:100%; height:auto; aspect-ratio:16/10; border-radius:2px; box-shadow:var(--shadow); background:#000;}
+.laptop-base{ position:relative; height:22px; margin:-1px -10% 0; border-radius:0 0 48% 48%; background:linear-gradient(105deg,#777b82,#f1f2f4 18%,#bfc2c7 52%,#f7f8f9 84%,#777b82); box-shadow:0 12px 18px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.82); transform:perspective(500px) rotateX(5deg); transform-origin:top;}
+.laptop-base::before{ content:''; position:absolute; left:36%; right:36%; top:3px; height:3px; border-radius:0 0 5px 5px; background:#6d7075; box-shadow:0 1px 2px rgba(0,0,0,.35);}
+.laptop-base::after{ content:'MacBook Pro'; position:absolute; left:0; right:0; top:2px; text-align:center; color:#55585d; font:500 6px Manrope,sans-serif; opacity:.9;}
+.laptop-stage:not(.mobile-mode) .collage-canvas-wrap{ padding:0; border:0; border-radius:2px; background:#000;}
+.laptop-stage:not(.mobile-mode) #collageCanvas{ border-radius:2px;}
+.laptop-stage.mobile-mode{ padding-left:25%; padding-right:25%;}
+.laptop-stage.mobile-mode .laptop-screen{ padding:7px; border:2px solid #d5d6d8; border-radius:28px; background:linear-gradient(105deg,#8f9297,#f4f5f6 18%,#b8babd 55%,#777a80); box-shadow:0 24px 40px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.9), inset 0 -2px 3px rgba(0,0,0,.35);}
+.laptop-stage.mobile-mode .laptop-screen::before{ content:''; position:absolute; left:-4px; top:92px; width:3px; height:34px; border-radius:3px 0 0 3px; background:#aeb0b4; box-shadow:0 46px #aeb0b4, 0 92px #aeb0b4;}
+.laptop-stage.mobile-mode .laptop-screen::after{ content:''; position:absolute; right:-4px; top:132px; width:3px; height:62px; border-radius:0 3px 3px 0; background:#8b8e93;}
+.laptop-stage.mobile-mode .laptop-camera{ top:11px; width:42px; height:10px; border-radius:8px; background:#050506; box-shadow:inset 8px 0 #161619, inset -8px 0 #161619;}
+.laptop-stage.mobile-mode .collage-canvas-wrap{ padding:5px; border:0; border-radius:21px; background:#030303;}
+.laptop-stage.mobile-mode #collageCanvas{ aspect-ratio:9/16;}
+.laptop-stage.mobile-mode .laptop-base{ display:none;}
+.collage-canvas-wrap{ cursor:zoom-in;}
+.collage-viewer{ position:fixed; inset:0; z-index:3500; display:flex; align-items:center; justify-content:center; padding:30px; background:rgba(4,3,7,.9); backdrop-filter:blur(8px); opacity:0; pointer-events:none; transition:opacity var(--dur-normal) var(--ease);}
+.collage-viewer.show{ opacity:1; pointer-events:auto;}
+.collage-viewer img{ max-width:min(90vw,1100px); max-height:82vh; object-fit:contain; border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);}
+.collage-viewer-close{ position:absolute; top:24px; right:28px; width:44px; height:44px; border:1px solid rgba(244,238,226,.3); border-radius:50%; background:rgba(244,238,226,.08); color:var(--ivory); cursor:pointer; font-size:20px;}
+.collage-viewer-close:hover{ background:var(--gold); color:#181021;}
+.tool-note{ color:var(--text-dim); font-size:13px; margin-top:16px; text-align:center;}
+
+#capsule{ background:linear-gradient(180deg, transparent, var(--surface) 40%, transparent);}
+.capsule-grid{ display:grid; grid-template-columns:minmax(280px,.8fr) minmax(360px,1.2fr); gap:38px; align-items:start;}
+.capsule-controls{ position:relative; border:1px solid var(--border); border-radius:var(--r-lg); padding:26px; background:var(--surface); box-shadow:0 0 0 1px rgba(201,166,107,.15), 0 0 24px rgba(201,166,107,.12);}
+.capsule-controls::before{
+  content:''; position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(135deg, rgba(201,166,107,.32), rgba(201,123,132,.18), rgba(110,139,122,.18), rgba(201,166,107,.26));
+  filter:blur(18px); opacity:.8; z-index:0;
+}
+.capsule-controls > *{ position:relative; z-index:1; }
+.capsule-label{ display:block; color:var(--accent-ink-2); font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px;}
+.capsule-field{ margin-bottom:22px;}
+.capsule-input,.capsule-textarea,.capsule-select{ width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:13px 14px; color:var(--text); font:inherit; font-size:13px;}
+.capsule-textarea{ min-height:118px; resize:vertical; font-family:'Fraunces'; font-style:italic; line-height:1.55;}
+.capsule-input:focus,.capsule-textarea:focus,.capsule-select:focus{ outline:2px solid var(--gold); outline-offset:2px; border-color:var(--gold);}
+.capsule-sparks{ display:flex; gap:7px; flex-wrap:wrap; margin-top:10px;}
+.capsule-spark{ border:0; background:transparent; color:var(--accent-ink-2); cursor:pointer; font:inherit; font-size:11px; padding:0; text-align:left;}
+.capsule-spark:hover{ color:var(--text); text-decoration:underline; text-underline-offset:3px;}
+.capsule-moods{ display:flex; gap:8px; flex-wrap:wrap;}
+.capsule-mood{ border:1px solid var(--border); background:transparent; color:var(--text-dim); border-radius:999px; padding:8px 12px; cursor:pointer; font:inherit; font-size:12px; transition:all var(--dur-fast) var(--ease);}
+.capsule-mood.active,.capsule-mood:hover{ color:var(--text); border-color:var(--gold); background:rgba(201,166,107,.14);}
+.capsule-source{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+.capsule-source button{ padding:0; border:1px solid var(--border); background:var(--surface); border-radius:9px; overflow:hidden; aspect-ratio:1; cursor:pointer; opacity:.62; transition:all var(--dur-fast) var(--ease);}
+.capsule-source button:hover,.capsule-source button.active{ opacity:1; border-color:var(--gold); transform:translateY(-2px); box-shadow:0 8px 18px rgba(201,166,107,.18);}
+.capsule-source img{ width:100%; height:100%; object-fit:cover;}
+.capsule-treatments{ display:flex; gap:8px; flex-wrap:wrap;}
+.capsule-treatment{ border:1px solid var(--border); background:transparent; color:var(--text-dim); border-radius:10px; padding:9px 11px; cursor:pointer; font:inherit; font-size:12px; transition:all var(--dur-fast) var(--ease);}
+.capsule-treatment.active,.capsule-treatment:hover{ border-color:var(--gold); color:var(--text); background:var(--surface-strong);}
+.capsule-preview-wrap{ min-width:0;}
+.capsule-preview{ position:relative; overflow:hidden; border-radius:var(--r-lg); padding:24px; background:#211a18; box-shadow:0 0 0 1px rgba(201,166,107,.18), 0 0 30px rgba(201,166,107,.2), var(--shadow); border:1px solid rgba(201,166,107,.3);}
+.capsule-preview::before{
+  content:''; position:absolute; inset:-10% -8%; border-radius:inherit; pointer-events:none;
+  background:radial-gradient(circle at 50% 30%, rgba(201,166,107,.32), transparent 42%);
+  filter:blur(12px); opacity:.9;
+}
+#capsuleCanvas{ position:relative; z-index:1; display:block; width:100%; max-height:700px; object-fit:contain; border-radius:10px; box-shadow:0 0 20px rgba(201,166,107,.12);}
+.capsule-hint{ color:var(--text-dim); font-size:12px; line-height:1.6; margin:15px 0 0;}
+.capsule-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:20px;}
+.family-photo-upload{ margin-top:12px; font-size:12px;}
+/* ============ ABOUT ============ */
+.about-grid{ display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center;}
+.about-grid img{ border-radius:var(--r-lg); box-shadow:var(--shadow); width:100%; height:auto; aspect-ratio:auto; object-fit:contain; cursor:zoom-in;}
+.about-grid p{ color:var(--text-dim); line-height:1.8; margin-bottom:16px;}
+
+/* ============ FOOTER ============ */
+footer{ position:relative; padding:100px 0 40px; text-align:center; border-top:1px solid var(--border); overflow:hidden;}
+.footer-drift{ position:absolute; inset:0; opacity:.06; background-image:repeating-linear-gradient(45deg, var(--gold) 0 2px, transparent 2px 40px);}
+.footer-logo{ font-family:'Fraunces'; font-size:34px; letter-spacing:.14em; text-transform:uppercase; transition:text-shadow var(--dur-cinematic) var(--ease);}
+footer.lit .footer-logo{ text-shadow:0 0 30px rgba(201,166,107,.55);}
+.footer-tag{ color:var(--accent-ink-2); font-size:13px; font-weight:600; letter-spacing:.2em; margin-top:10px; text-transform:uppercase;}
+.footer-links{ display:flex; gap:26px; justify-content:center; margin:34px 0; flex-wrap:wrap; font-size:13px; color:var(--text-dim);}
+.footer-heart{ color:var(--accent-ink-2); font-size:20px; margin:20px 0;}
+.footer-note{ color:var(--text-dim); font-size:13.5px; line-height:1.7; max-width:360px; margin:0 auto;}
+.footer-copy{ margin-top:40px; font-size:11.5px; color:var(--text-dim); opacity:.6;}
+
+/* toast */
+#toast{ position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg-2); border:1px solid var(--border); padding:12px 22px; border-radius:999px; font-size:13px; opacity:0; pointer-events:none; transition:all var(--dur-normal) var(--ease); z-index:5000; box-shadow:var(--shadow);}
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:980px){
+  .featured-row{ grid-template-columns:repeat(2,1fr);}
+  .gallery-grid{ grid-template-columns:repeat(2,1fr);}
+  .about-grid{ grid-template-columns:1fr;}
+  .capsule-grid{ grid-template-columns:1fr;}
+  .collage-builder{ grid-template-columns:1fr;}
+  .branch-pair{ gap:30px;}
+}
+@media (max-width:720px){
+  nav.links{ display:none; }
+  .hamburger{ display:flex; align-items:center; justify-content:center;}
+  nav.links.mobile-open{
+    display:flex; flex-direction:column; position:fixed; top:64px; left:16px; right:16px; background:var(--bg-2);
+    border:1px solid var(--border); border-radius:16px; padding:10px; z-index:500; box-shadow:var(--shadow);
+  }
+  .gallery-grid{ grid-template-columns:1fr;}
+  .featured-row{ grid-template-columns:1fr;}
+  .tree-row, .branch-pair{ flex-direction:column; align-items:center;}
+  .masked-heading{ font-size:15vw;}
+  .collage-controls{ padding:20px;}
+  .laptop-stage{ padding:12px 0;}
+  .laptop-stage.mobile-mode{ padding-left:18%; padding-right:18%;}
+}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div id="cursor-glow"></div>
+<div id="cursor-dot"></div>
+
+<!-- ============ LANDING ============ -->
+<div id="landing">
+  <div class="landing-glow"></div>
+  <div class="landing-line"></div>
+  <div class="landing-mark">
+    <div class="landing-logo" aria-label="Memora logo">
+      <svg viewBox="0 0 40 40" fill="none" role="img" aria-hidden="true">
+        <path class="logo-outline" d="M20 3L35 12V28L20 37L5 28V12L20 3Z" stroke="currentColor" stroke-width="1.4" opacity=".8"/>
+        <circle class="logo-core" cx="20" cy="20" r="6.5" stroke="currentColor" stroke-width="1.4"/>
+        <path class="logo-spokes" d="M20 3V13M20 27V37M5 12L14 17M26 23L35 28M35 12L26 17M14 23L5 28" stroke="currentColor" stroke-width="1" opacity=".5"/>
+      </svg>
+    </div>
+    <h1>Memora</h1>
+  </div>
+  <div class="landing-tag">Every frame holds a story</div>
+  <button class="skip-intro" id="skipIntro">Skip Intro →</button>
+</div>
+
+<!-- ============ NAVBAR ============ -->
+<header id="siteHeader">
+  <div class="wrap nav-inner">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" fill="none"><path d="M20 3L35 12V28L20 37L5 28V12L20 3Z" stroke="currentColor" stroke-width="1.4" opacity=".55"/><circle cx="20" cy="20" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M20 3V13M20 27V37M5 12L14 17M26 23L35 28M35 12L26 17M14 23L5 28" stroke="currentColor" stroke-width="1" opacity=".35"/></svg>
+      Memora
+    </div>
+    <nav class="links" id="navLinks">
+      <a href="#hero">Home</a>
+      <a href="#family">Family</a>
+      <a href="#memories">Memories</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#capsule">Time Capsule</a>
+      <a href="#about">About</a>
+    </nav>
+    <div class="nav-right">
+      <div class="theme-toggle" id="themeToggle" role="button" aria-label="Toggle day and night mode"><div class="knob">☀</div></div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="hero-backdrop"><img id="heroBackdropImg" alt=""></div>
+  <div class="drift-wall" id="driftWall"></div>
+  <div class="hero-scrim"></div>
+  <div class="wrap hero-content">
+    <div class="eyebrow-tag">A cinematic family memory archive</div>
+    <h1 class="masked-heading">Memories<br>Live Here</h1>
+    <div class="typewriter-line"><span id="typeTarget"></span><span class="cursor-bar"></span></div>
+    <div class="hero-ctas">
+      <a href="#gallery" class="btn primary"><span>Explore Memories</span></a>
+      <a href="#family" class="btn ghost"><span>Meet the Family</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURED ============ -->
+<section id="memories" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Featured</div>
+      <h2>Moments worth keeping</h2>
+      <p>A handful of frames pulled from the archive — the ones that get revisited most.</p>
+    </div>
+    <div class="featured-row" id="featuredRow"></div>
+  </div>
+</section>
+
+<!-- ============ FAMILY TREE ============ -->
+<section id="family" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">The Family</div>
+      <h2>Three generations, one story</h2>
+      <p>Every branch holds its own chapter. Click on anyone to open their memories.</p>
+    </div>
+    <div class="tree" id="treeHost"></div>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section id="gallery" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">The Archive</div>
+      <h2>Every photograph, kept with care</h2>
+      <p>Click once to see the full photograph, then click again to turn the card over. Double-click opens full-screen.</p>
+    </div>
+     <div class="gallery-toolbar">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div class="chip-row" id="categoryChips"></div>
+      <div class="search-box">
+      🔍<input type="text" id="searchInput" placeholder="Search memories, people, places…">
+      </div>
+        <button class="btn small" id="uploadBtn"><span>+ Upload Photo</span></button>
+        <button class="btn small ghost" id="binBtn"><span>Recycle Bin</span></button>
+      </div>
+    </div>
+
+  </div>
+
+    <div class="gallery-grid" id="galleryGrid"></div>
+    <div class="gallery-empty" id="galleryEmpty" style="display:none;">No memories match that search — try another word.</div>
+  </div>
+</section>
+
+<!-- ============ CREATE A MEMORY ============ -->
+<section id="create" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Create A Memory</div>
+      <h2>Combine photographs into one keepsake</h2>
+      <p>Pick a layout, and Memora arranges your favorites into a downloadable composition.</p>
+    </div>
+    <div class="collage-layouts" id="layoutChips"></div>
+    <div class="collage-builder">
+      <div class="collage-controls">
+        <h3>Bring your own frames</h3>
+        <p>Choose photographs from your device and turn them into one shared keepsake.</p>
+        <label class="collage-upload" id="collageUploadDrop" for="collagePhotoInput">
+          <strong>＋ Add photographs</strong>
+          <span>Click to browse or drag images here<br>JPG, PNG, WEBP · up to 8 photos</span>
+          <input type="file" id="collagePhotoInput" accept="image/*" multiple>
+        </label>
+        <div class="collage-photo-count" id="collagePhotoCount">Using archive photographs</div>
+        <div class="collage-photo-list" id="collagePhotoList" aria-label="Selected photographs"></div>
+      </div>
+      <div class="laptop-stage">
+        <div class="preview-mode" id="previewMode" aria-label="Preview device">
+          <button class="chip active" type="button" data-preview="laptop">Laptop</button>
+          <button class="chip" type="button" data-preview="mobile">Phone</button>
+        </div>
+        <div class="laptop-screen">
+          <span class="laptop-camera"></span>
+          <div class="collage-canvas-wrap">
+            <canvas id="collageCanvas" width="640" height="400"></canvas>
+          </div>
+        </div>
+        <div class="laptop-base"></div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn primary" id="downloadCollage" style="margin-top:22px;"><span>⬇ Download Composition</span></button>
+    </div>
+    <p class="tool-note">Layouts shown: Grid · Polaroid · Film Strip · Vertical Stack — reshuffles your featured memories each time.</p>
+  </div>
+</section>
+
+<!-- ============ MEMORY TIME CAPSULE ============ -->
+<section id="capsule" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Memory Time Capsule</div>
+      <h2>Make one moment last longer</h2>
+      <p>Compose a keepsake from a photograph, a few honest words, and the feeling you want to remember.</p>
+    </div>
+    <div class="capsule-grid">
+      <div class="capsule-controls">
+        <div class="capsule-field"><label class="capsule-label" for="capsuleTitle">Title</label><input class="capsule-input" id="capsuleTitle" value="The day we stayed a little longer" maxlength="72"></div>
+        <div class="capsule-field"><label class="capsule-label" for="capsuleLetter">A note to keep with it</label><textarea class="capsule-textarea" id="capsuleLetter" placeholder="What do you want future-you to remember?"></textarea><div class="capsule-sparks"><button class="capsule-spark" type="button" data-spark="The small detail I never want to forget is...">✦ The small detail I never want to forget...</button><button class="capsule-spark" type="button" data-spark="I knew this was a good day when...">✦ I knew this was a good day when...</button><button class="capsule-spark" type="button" data-spark="Years from now, I hope I remember...">✦ Years from now, I hope I remember...</button></div></div>
+        <div class="capsule-field"><span class="capsule-label">The feeling</span><div class="capsule-moods" id="capsuleMoods"><button class="capsule-mood active" type="button" data-mood="Tender" data-emoji="❤️">❤️ Tender</button><button class="capsule-mood" type="button" data-mood="Joyful" data-emoji="😍">😍 Joyful</button><button class="capsule-mood" type="button" data-mood="Wild" data-emoji="😂">😂 Wild</button><button class="capsule-mood" type="button" data-mood="Quiet" data-emoji="😊">😊 Quiet</button></div></div>
+        <div class="capsule-field"><span class="capsule-label">Choose a photograph</span><div class="capsule-source" id="capsuleSource"></div></div>
+        <div class="capsule-field"><span class="capsule-label">Card treatment</span><div class="capsule-treatments" id="capsuleTreatments"><button class="capsule-treatment active" type="button" data-treatment="paper">Paper</button><button class="capsule-treatment" type="button" data-treatment="film">Film contact</button><button class="capsule-treatment" type="button" data-treatment="night">After dark</button></div></div>
+        <div class="capsule-field"><label class="capsule-label" for="capsuleDate">Date on the card</label><input class="capsule-input" id="capsuleDate" type="date"></div>
+        <div class="capsule-actions"><button class="btn primary" id="downloadCapsule"><span>Download keepsake</span></button><button class="btn ghost" id="saveCapsule"><span>Save to Memora</span></button></div>
+      </div>
+      <div class="capsule-preview-wrap"><div class="capsule-preview"><canvas id="capsuleCanvas" width="900" height="1125"></canvas></div><p class="capsule-hint">A quiet little artifact for the moments that deserve more than a filename. Everything is composed in your browser.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="section-pad">
+  <div class="wrap about-grid">
+    <div>
+      <div class="kicker" style="color:var(--accent-ink-2);font-weight:600;font-size:13px;letter-spacing:.24em;margin-bottom:14px;">Our Story</div>
+      <h2 style="font-size:clamp(28px,4vw,40px);margin:0 0 20px;">A family, kept in frames</h2>
+      <p>What started as a shoebox of prints became something we wanted to protect properly — every birthday, every ordinary Sunday, every face that shaped us.</p>
+      <p>Memora exists so none of that gets lost to a broken hard drive or a phone that gets replaced. It's a place built for one family, and it's built to last.</p>
+      <a href="#family" class="btn ghost"><span>Meet everyone →</span></a>
+    </div>
+    <img id="aboutImg" src="images/family.jpg" alt="Family portrait">
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="siteFooter">
+  <div class="footer-drift"></div>
+  <div class="wrap">
+    <div class="footer-logo">Memora</div>
+    <div class="footer-tag">Every Frame Holds a Story.</div>
+    <div class="footer-links">
+      <a href="#hero">Home</a><a href="#family">Family</a><a href="#memories">Memories</a><a href="#gallery">Gallery</a><a href="#capsule">Time Capsule</a><a href="#about">About</a>
+    </div>
+    <div class="footer-heart">♡</div>
+    <p class="footer-note">Made with love for the memories we never want to lose.</p>
+    <div class="footer-copy">© 2026 Memora</div>
+  </div>
+</footer>
+
+<!-- ============ FAMILY PANEL ============ -->
+<div class="panel-overlay" id="famPanel">
+  <div class="panel">
+    <img id="panelImg" alt="">
+    <h3 id="panelName"></h3>
+    <div class="role" id="panelRole"></div>
+    <p class="desc" id="panelDesc"></p>
+    <div class="stats">
+      <div><b id="panelMemCount"></b><span>MEMORIES</span></div>
+      <div><b id="panelAlbumCount"></b><span>ALBUMS</span></div>
+    </div>
+    <input type="file" id="grandfatherPhotoInput" accept="image/*" hidden>
+    <button class="btn ghost family-photo-upload" id="grandfatherPhotoBtn" style="display:none;"><span>Add grandfather photo</span></button>
+    <button class="btn primary" id="panelViewBtn"><span>View Memories</span></button>
+  </div>
+</div>
+
+<!-- ============ LIGHTBOX ============ -->
+<div id="lightbox">
+  <button class="lb-close" id="lbClose">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+  <button class="lb-nav lb-next" id="lbNext">›</button>
+  <div class="lb-stage"><img id="lbImg" alt=""></div>
+  <div class="lb-caption" id="lbCaption"></div>
+  <div class="lb-controls">
+    <button id="lbZoomOut">−</button>
+    <button id="lbZoomReset">⛶</button>
+    <button id="lbZoomIn">+</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div class="collage-viewer" id="collageViewer" role="dialog" aria-label="Large composition preview">
+  <button class="collage-viewer-close" id="collageViewerClose" type="button" aria-label="Close preview">✕</button>
+  <img id="collageViewerImg" alt="Large composition preview">
+</div>
+
+<script>
+(function(){
+'use strict';
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============================================================
+   PLACEHOLDER "PHOTO" GENERATOR (canvas → dataURL)
+   Published pages can't load remote images, so every "photograph"
+   in this prototype is generated on the fly as a soft gradient
+   frame with a monogram / icon — swap these dataURLs for real
+   uploaded photo URLs in production.
+============================================================ */
+const PALETTES = [
+  ['#3b2f4e','#c97b84'], ['#22344a','#c9a66b'], ['#402e33','#e0b285'],
+  ['#2c3b34','#6e8b7a'], ['#4a3324','#e6c79c'], ['#33324a','#a888c9'],
+  ['#3a2a2f','#d99a7b'], ['#25333a','#8fb3ae']
+];
+function makePlaceholder(label, seed, w=600,h=800){
+  const c = document.createElement('canvas'); c.width=w; c.height=h;
+  const ctx = c.getContext('2d');
+  const pal = PALETTES[seed % PALETTES.length];
+  const g = ctx.createLinearGradient(0,0,w,h);
+  g.addColorStop(0,pal[0]); g.addColorStop(1,pal[1]);
+  ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+  // soft vignette
+  const rg = ctx.createRadialGradient(w/2,h*0.4,10,w/2,h*0.5,w*0.8);
+  rg.addColorStop(0,'rgba(255,255,255,0.10)'); rg.addColorStop(1,'rgba(0,0,0,0.25)');
+  ctx.fillStyle = rg; ctx.fillRect(0,0,w,h);
+  // grain-ish dots
+  ctx.globalAlpha=.05;
+  for(let i=0;i<140;i++){ ctx.fillStyle = i%2? '#fff':'#000'; ctx.beginPath(); ctx.arc(Math.random()*w,Math.random()*h, Math.random()*1.6,0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+  // monogram
+  const initials = label.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+  ctx.font = `500 ${Math.floor(w*0.22)}px Georgia, serif`;
+  ctx.fillStyle='rgba(255,255,255,0.28)';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(initials, w/2, h*0.46);
+  ctx.font = `${Math.floor(w*0.045)}px Georgia, serif`;
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.fillText(label, w/2, h*0.86);
+  return c.toDataURL('image/jpeg',0.86);
+}
+
+/* ============================================================
+   DATA
+============================================================ */
+const FAMILY = [
+  {id:'gf', name:'Grandfather Arthur', role:'Grandfather', gen:0, desc:'The one who started it all — every story in this archive traces back to a joke he told first.', mem:58, alb:14},
+  {id:'gm', name:'Grandmother Elise', role:'Grandmother', gen:0, desc:'Keeper of recipes, birthdays, and the good camera nobody else was allowed to touch.', mem:64, alb:16},
+
+  {id:'dad', name:'Robert', role:'First Son · Dad', gen:1, parent:['gf','gm'], desc:'Took more photos on family trips than anyone asked for — we\'re grateful now.', mem:120, alb:22},
+  {id:'mom', name:'Claire', role:'Mom', gen:1, spouseOf:'dad', desc:'Behind most of the best photographs, which is why she\'s in so few of them.', mem:96, alb:19},
+  {id:'uncle2', name:'Second Son · Michael', role:'Second Son', gen:1, parent:['gf','gm'], desc:'Moved three cities over but never missed a single holiday photo.', mem:74, alb:15},
+  {id:'aunt', name:'Aunt Priya', role:'Aunt', gen:1, spouseOf:'uncle2', desc:'The family\'s unofficial event photographer — nothing gets past her lens.', mem:81, alb:17},
+
+  {id:'me', name:'Me', role:'Son · Robert & Claire', gen:2, parent:['dad','mom'], desc:'This whole archive exists because I refused to lose another photo to a dead phone.', mem:142, alb:20},
+  {id:'sister', name:'My Sister', role:'Daughter · Robert & Claire', gen:2, parent:['dad','mom'], desc:'Better at picking the good angle than anyone else in the family, by far.', mem:130, alb:18},
+  {id:'cousin1', name:'Cousin Anya', role:'Daughter · Michael & Priya', gen:2, parent:['uncle2','aunt'], desc:'Grew up half in this house, half in her own — appears in both albums equally.', mem:88, alb:13},
+  {id:'cousin2', name:'Cousin Maya', role:'Daughter · Michael & Priya', gen:2, parent:['uncle2','aunt'], desc:'The youngest cousin, and somehow already the family\'s best storyteller.', mem:76, alb:12},
+];
+const FAMILY_IMAGE_MAP = {
+  gf:'images/grandf.jpg', gm:'images/grandm.jpg', dad:'images/dad.jpg', mom:'images/mom.jpg',
+  uncle2:'images/uncle.jpg', aunt:'images/aunt.jpg', me:'images/girl1.jpg', sister:'images/girl2.jpg',
+  cousin1:'images/girl3.jpg', cousin2:'images/girl4.jpg'
+};
+FAMILY.forEach((f,i)=> f.photo = FAMILY_IMAGE_MAP[f.id] || makePlaceholder(f.name, i));
+
+const CATEGORY_LIST = ['All Memories','Family','Childhood','Celebrations','Travel','Festivals','Special Moments'];
+const FAMILY_ONLY_IMAGES = [
+  'images/sundayporchlight.jpg',
+  'images/first day school.jpg',
+  'images/70th bday.jpg',
+  'images/family2.jpg',
+  'images/family2.jpg',
+  'images/diwali.jpg',
+  'images/graduation.jpg',
+  'images/girl1.jpg',
+  'images/girl2.jpg',
+  'images/girl3.jpg',
+  'images/girl4.jpg',
+  'images/mom.jpg',
+  'images/dad.jpg',
+  'images/grandf.jpg',
+  'images/grandm.jpg',
+  'images/uncle.jpg',
+  'images/aunt.jpg'
+];
+
+const MEMORY_SEED = [
+  {t:'Sunday Porch Light', cat:'Family', d:'12 Apr 2024', loc:'Home', desc:"Nobody planned this photo. We were just sitting there when the light did something worth keeping.", time:'6:12 PM', img:'images/sundayporchlight.jpg'},
+  {t:'First Day of School', cat:'Childhood', d:'03 Sep 2019', loc:'Elm Street', desc:'Shoes two sizes too big and a backpack she insisted on carrying herself.', time:'7:48 AM', img:'images/first day school.jpg'},
+  {t:'Grandma\'s 70th', cat:'Celebrations', d:'22 Jun 2023', loc:'The Garden House', desc:'She blew out every candle on the second try and pretended the first one didn\'t happen.', time:'8:30 PM', img:'images/70th bday.jpg'},
+  {t:'paris', cat:'Travel', d:'14 Aug 2022', loc:'Highway 1', desc:'We pulled over for gas and stayed for forty minutes because of this view.', time:'5:05 PM', img:'images/travel1.jpg'},
+  {t:'Diwali Evening', cat:'Festivals', d:'01 Nov 2023', loc:'Backyard', desc:'The lights never come out right in photos, but this one got close enough.', time:'7:20 PM', img:'images/diwali.jpg'},
+  {t:'Cousins\' Reunion', cat:'Family', d:'30 Jul 2023', loc:'Grandparents\' House', desc:'Four cousins, one couch, zero chance of everyone looking at the camera.', time:'3:15 PM', img:'images/family2.jpg'},
+  {t:'Graduation Walk', cat:'Special Moments', d:'17 May 2022', loc:'University Hall', desc:'Twelve years of school compressed into one slightly too-long walk across a stage.', time:'11:40 AM', img:'images/graduation.jpg'},
+  {t:'Enjoying Trip', cat:'Travel', d:'02 Dec 2021', loc:'Blue Ridge', desc:'No signal for three days, and somehow nobody minded.', time:'9:18 AM', img:'images/travel2.jpg'},
+  {t:'Holi Colors', cat:'Festivals', d:'25 Mar 2023', loc:'Community Ground', desc:'Every photo from this day needed a warning label: colors do not represent actual skin tone.', time:'1:30 PM', img:'images/holi.jpg'},
+  {t:'Travel Escape', cat:'Travel', d:'18 Sep 2024', loc:'Countryside', desc:'A quiet journey and a road that felt like it belonged in a postcard.', time:'9:40 AM', img:'images/travel3.jpg'},
+  {t:'Roadside Morning', cat:'Travel', d:'07 Mar 2023', loc:'Mountain Route', desc:'The best memories were made between the stops.', time:'7:15 AM', img:'images/travel4.jpg'},
+  {t:'Paris with son', cat:'Travel', d:'12 Jul 2024', loc:'Lake View', desc:'Golden hour arrived just in time for one last frame.', time:'6:48 PM', img:'images/travel5.jpg'}
+];
+let memories = MEMORY_SEED.map((m,i)=>({
+  id:'m'+i, ...m, fav:false, deleted:false, deletedAt:null
+}));
+try{
+  const familyPhotos = JSON.parse(localStorage.getItem('memora_family_photos')||'{}');
+  FAMILY.forEach(f=>{ if(familyPhotos[f.id]) f.photo = familyPhotos[f.id]; });
+}catch(e){}
+
+// restore state
+try{
+  const saved = JSON.parse(localStorage.getItem('memora_state')||'null');
+  if(saved){ memories = memories.map(m=>{
+    const s = saved.find(x=>x.id===m.id);
+    return s? {...m, fav:s.fav, deleted:s.deleted, deletedAt:s.deletedAt} : m;
+  }); }
+}catch(e){}
+function persist(){
+  try{ localStorage.setItem('memora_state', JSON.stringify(memories.map(m=>({id:m.id,fav:m.fav,deleted:m.deleted,deletedAt:m.deletedAt})))); }catch(e){}
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg){
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>toastEl.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   LANDING INTRO
+============================================================ */
+const landing = document.getElementById('landing');
+function endIntro(){
+  landing.classList.add('hide');
+  document.body.style.overflow='';
+  setTimeout(()=> landing.remove(), 1200);
+}
+document.body.style.overflow='hidden';
+const introTimer = setTimeout(endIntro, reduceMotion? 200 : 6300);
+document.getElementById('skipIntro').addEventListener('click', ()=>{ clearTimeout(introTimer); endIntro(); });
+
+/* ============================================================
+   CURSOR GLOW + CLICK SPARK
+============================================================ */
+const glow = document.getElementById('cursor-glow'), dot = document.getElementById('cursor-dot');
+const isTouch = matchMedia('(hover:none), (pointer:coarse)').matches;
+if(!isTouch){
+  window.addEventListener('pointermove', e=>{
+    glow.style.left = e.clientX+'px'; glow.style.top = e.clientY+'px';
+    dot.style.left = e.clientX+'px'; dot.style.top = e.clientY+'px';
+  });
+  document.addEventListener('pointerover', e=>{
+    if(e.target.closest('a,button,.mcard,.fam-card,.feat-card,input,.chip')) glow.classList.add('expand');
+  });
+  document.addEventListener('pointerout', e=>{
+    if(e.target.closest('a,button,.mcard,.fam-card,.feat-card,input,.chip')) glow.classList.remove('expand');
+  });
+}
+document.addEventListener('click', e=>{
+  if(reduceMotion) return;
+  if(e.target.closest('.lb-nav,.lb-zoom,.lb-controls')) return;
+  for(let i=0;i<7;i++){
+    const s = document.createElement('div'); s.className='spark';
+    const angle = (Math.PI*2/7)*i + Math.random()*0.4;
+    const dist = 26 + Math.random()*22;
+    s.style.setProperty('--dx', Math.cos(angle)*dist+'px');
+    s.style.setProperty('--dy', Math.sin(angle)*dist+'px');
+    s.style.left = e.clientX+'px'; s.style.top = e.clientY+'px';
+    s.style.background = i%2? 'var(--gold)':'var(--rose)';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 650);
+  }
+});
+
+/* ============================================================
+   NAVBAR: scroll state, mobile menu, theme toggle
+============================================================ */
+const header = document.getElementById('siteHeader');
+window.addEventListener('scroll', ()=>{ header.classList.toggle('scrolled', window.scrollY>40); }, {passive:true});
+const hamburger = document.getElementById('hamburger'), navLinks = document.getElementById('navLinks');
+hamburger.addEventListener('click', ()=> navLinks.classList.toggle('mobile-open'));
+navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>navLinks.classList.remove('mobile-open')));
+
+const themeToggle = document.getElementById('themeToggle');
+const knob = themeToggle.querySelector('.knob');
+function setTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  knob.textContent = mode==='light' ? '☀' : '🌙';
+  try{ localStorage.setItem('memora_theme', mode); }catch(e){}
+}
+setTheme((()=>{ try{ return localStorage.getItem('memora_theme') || 'dark'; }catch(e){ return 'dark'; } })());
+themeToggle.addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme');
+  setTheme(cur==='light' ? 'dark' : 'light');
+});
+
+/* ============================================================
+   HERO: drift wall + typewriter
+============================================================ */
+const driftWall = document.getElementById('driftWall');
+const driftSeeds = [
+  'Sunday Porch Light','Coastal Drive','First Day of School','Diwali Evening','Mountain Cabin','Graduation Walk',
+  'Snow Day, Age 6','Cousins\' Reunion','Beach Walk','Birthday','Old House','Winter Morning','Road Trip','Backyard'
+];
+const driftImages = [
+  'images/sundayporchlight.jpg','images/family2.jpg','images/first day school.jpg','images/diwali.jpg',
+  'images/girl1.jpg','images/graduation.jpg','images/girl2.jpg','images/girl3.jpg','images/girl4.jpg',
+  'images/70th bday.jpg','images/grandf.jpg','images/grandm.jpg','images/mom.jpg','images/dad.jpg'
+];
+const driftSlots = [
+  {x:4,y:8},{x:16,y:38},{x:8,y:66},{x:22,y:80},{x:2,y:52},
+  {x:88,y:10},{x:78,y:40},{x:92,y:64},{x:80,y:82},{x:94,y:32},
+  {x:38,y:6},{x:60,y:8},{x:44,y:88},{x:62,y:86}
+];
+driftSeeds.forEach((s,i)=>{
+  const slot = driftSlots[i % driftSlots.length];
+  const el = document.createElement('div'); el.className='drift-card';
+  const tier = i % 3;
+  el.classList.add(tier===0?'tier-near':tier===2?'tier-far':'tier-mid');
+  const baseSize = tier===0? 128 : tier===1? 100 : 76;
+  const size = baseSize + Math.random()*20;
+  el.style.width = size+'px'; el.style.height = (size*1.22)+'px';
+  el.style.left = slot.x+'%'; el.style.top = slot.y+'%';
+  el.style.opacity = tier===0? .82 : tier===1? .55 : .34;
+  el.style.zIndex = 3-tier;
+  const rotBase = (Math.random()*14-7).toFixed(1);
+  el.style.transform = `rotate(${rotBase}deg)`;
+  const ph = document.createElement('div'); ph.className='ph';
+  const img = document.createElement('img');
+  const selectedSrc = driftImages[i % driftImages.length] || makePlaceholder(s, i+20, 300,390);
+  img.src = selectedSrc;
+  img.alt = s;
+  ph.appendChild(img); el.appendChild(ph);
+  driftWall.appendChild(el);
+  if(!reduceMotion){
+    const dur = 16+Math.random()*12, dx=(Math.random()*36-18)*(tier+1)*0.5, dy=(Math.random()*46-23)*(tier+1)*0.5, rot=parseFloat(rotBase)+(Math.random()*6-3);
+    el.animate([
+      {transform:`translate3d(0,0,0) rotate(${rotBase}deg)`},
+      {transform:`translate3d(${dx}px,${dy}px,0) rotate(${rot}deg)`},
+      {transform:`translate3d(0,0,0) rotate(${rotBase}deg)`}
+    ], {duration:dur*1000, iterations:Infinity, delay:i*350, easing:'ease-in-out'});
+  }
+});
+if(!isTouch && !reduceMotion){
+  window.addEventListener('pointermove', e=>{
+    const nx = (e.clientX/innerWidth - .5), ny=(e.clientY/innerHeight - .5);
+    driftWall.style.transform = `rotateX(${ny*-3}deg) rotateY(${nx*3}deg)`;
+  });
+}
+
+const phrases = ['Capturing moments…','Preserving stories…','Celebrating family…','Keeping memories forever…'];
+const typeTarget = document.getElementById('typeTarget');
+let pIdx=0;
+function typeLoop(){
+  if(reduceMotion){ typeTarget.textContent = phrases[0]; return; }
+  const phrase = phrases[pIdx % phrases.length];
+  let i=0;
+  const typing = setInterval(()=>{
+    typeTarget.textContent = phrase.slice(0,i++);
+    if(i>phrase.length){
+      clearInterval(typing);
+      setTimeout(()=>{
+        let j=phrase.length;
+        const erasing = setInterval(()=>{
+          typeTarget.textContent = phrase.slice(0,j--);
+          if(j<0){ clearInterval(erasing); pIdx++; setTimeout(typeLoop, 250); }
+        }, 28);
+      }, 1300);
+    }
+  }, 55);
+}
+typeLoop();
+
+/* ============================================================
+   FEATURED STRIP
+============================================================ */
+const featuredRow = document.getElementById('featuredRow');
+memories.slice(0,4).forEach(m=>{
+  const c = document.createElement('div'); c.className='feat-card';
+  c.innerHTML = `<img src="${m.img}" alt="${m.t}"><div class="feat-caption">${m.t}</div>`;
+  c.addEventListener('click', ()=> openLightbox(memories.filter(x=>!x.deleted).findIndex(x=>x.id===m.id)));
+  c.querySelector('img').addEventListener('dblclick', ev=>{ ev.stopPropagation(); openLightbox(memories.filter(x=>!x.deleted).findIndex(x=>x.id===m.id)); });
+  featuredRow.appendChild(c);
+});
+
+/* ============================================================
+   FAMILY TREE
+============================================================ */
+const treeHost = document.getElementById('treeHost');
+function famCard(f){
+  const d = document.createElement('div'); d.className='fam-card'; d.dataset.familyId = f.id;
+  d.innerHTML = `<div class="fam-photo"><img src="${f.photo}" alt="${f.name}"></div>
+    <div class="fam-name">${f.name}</div>
+    <div class="fam-role">${f.role}</div>
+    <div class="fam-mem">♡ ${f.mem} Memories</div>`;
+  d.querySelector('img').addEventListener('dblclick', ev=>{
+    ev.stopPropagation();
+    openCustomLightbox(f.photo, f.name, f.name);
+  });
+  d.addEventListener('click', ()=> openFamPanel(f));
+  return d;
+}
+const byId = id => FAMILY.find(f=>f.id===id);
+
+// Row 0: grandparents
+const row0 = document.createElement('div'); row0.className='tree-row';
+row0.appendChild(famCard(byId('gf')));
+row0.appendChild(famCard(byId('gm')));
+treeHost.appendChild(row0);
+treeHost.appendChild(Object.assign(document.createElement('div'),{className:'tree-connector'}));
+
+// Row 1: two sons' families side by side, each branch with connector down to their kids
+const branchesRow = document.createElement('div'); branchesRow.className='branch-pair';
+
+function buildBranch(parentIds, kidIds){
+  const branch = document.createElement('div'); branch.className='tree-branch';
+  const parentsRow = document.createElement('div'); parentsRow.className='tree-row';
+  parentIds.forEach(pid=> parentsRow.appendChild(famCard(byId(pid))));
+  branch.appendChild(parentsRow);
+  branch.appendChild(Object.assign(document.createElement('div'),{className:'tree-connector'}));
+  const kidsRow = document.createElement('div'); kidsRow.className='tree-row';
+  kidIds.forEach(kid=> kidsRow.appendChild(famCard(byId(kid))));
+  branch.appendChild(kidsRow);
+  return branch;
+}
+branchesRow.appendChild(buildBranch(['dad','mom'], ['me','sister']));
+branchesRow.appendChild(buildBranch(['uncle2','aunt'], ['cousin1','cousin2']));
+treeHost.appendChild(branchesRow);
+
+// family panel
+const famPanel = document.getElementById('famPanel');
+function openFamPanel(f){
+  document.getElementById('panelImg').src = f.photo;
+  document.getElementById('panelName').textContent = f.name;
+  document.getElementById('panelRole').textContent = f.role;
+  document.getElementById('panelDesc').textContent = f.desc;
+  document.getElementById('panelMemCount').textContent = f.mem;
+  document.getElementById('panelAlbumCount').textContent = f.alb;
+  const grandfatherPhotoBtn = document.getElementById('grandfatherPhotoBtn');
+  grandfatherPhotoBtn.style.display = f.id==='gf' ? 'inline-flex' : 'none';
+  grandfatherPhotoBtn.dataset.familyId = f.id;
+  famPanel.classList.add('show');
+}
+const grandfatherPhotoInput = document.getElementById('grandfatherPhotoInput');
+document.getElementById('grandfatherPhotoBtn').addEventListener('click',()=>grandfatherPhotoInput.click());
+grandfatherPhotoInput.addEventListener('change',()=>{
+  const file = grandfatherPhotoInput.files[0];
+  if(!file || !file.type.startsWith('image/')){ toast('Please choose an image file'); return; }
+  const reader = new FileReader();
+  reader.onload = event=>{
+    const grandfather = byId('gf');
+    grandfather.photo = event.target.result;
+    document.getElementById('panelImg').src = grandfather.photo;
+    document.querySelectorAll(`[data-family-id="gf"] .fam-photo img`).forEach(image=>image.src=grandfather.photo);
+    const familyPhotos = JSON.parse(localStorage.getItem('memora_family_photos')||'{}');
+    familyPhotos.gf = grandfather.photo;
+    localStorage.setItem('memora_family_photos', JSON.stringify(familyPhotos));
+    toast('Grandfather photo added');
+  };
+  reader.readAsDataURL(file);
+});
+famPanel.addEventListener('click', e=>{ if(e.target===famPanel) famPanel.classList.remove('show'); });
+document.getElementById('panelViewBtn').addEventListener('click', ()=>{
+  famPanel.classList.remove('show');
+  document.getElementById('gallery').scrollIntoView({behavior:'smooth'});
+});
+
+/* ============================================================
+   GALLERY: categories, search, cards, favorites, recycle bin
+============================================================ */
+const categoryChips = document.getElementById('categoryChips');
+let activeCategory = 'All Memories';
+CATEGORY_LIST.forEach(cat=>{
+  const c = document.createElement('button'); c.className='chip'+(cat===activeCategory?' active':''); c.textContent=cat;
+  c.addEventListener('click', ()=>{ activeCategory=cat; [...categoryChips.children].forEach(x=>x.classList.remove('active')); c.classList.add('active'); renderGallery(); });
+  categoryChips.appendChild(c);
+});
+
+const galleryGrid = document.getElementById('galleryGrid');
+const galleryEmpty = document.getElementById('galleryEmpty');
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', renderGallery);
+
+
+let visibleList = [];
+function renderGallery(){
+  const q = searchInput.value.trim().toLowerCase();
+  visibleList = memories.filter(m=>!m.deleted).filter(m=>{
+    const catOk = activeCategory==='All Memories' || m.cat===activeCategory || (activeCategory==='Favorites' && m.fav);
+    const qOk = !q || (m.t+m.desc+m.loc+m.cat).toLowerCase().includes(q);
+    return catOk && qOk;
+  });
+  galleryGrid.innerHTML='';
+  galleryEmpty.style.display = visibleList.length? 'none':'block';
+  visibleList.forEach((m,idx)=>{
+    const card = document.createElement('div'); card.className='mcard';
+    card.innerHTML = `
+      <div class="mcard-inner">
+        <div class="mface mfront">
+          <img src="${m.img}" alt="${m.t}">
+          <button class="like-btn ${m.fav?'liked':''}">${m.fav?'♥':'♡'}</button>
+          <div class="tag">${m.cat}</div>
+          <div class="info-strip"><div class="t">${m.t}</div><div class="d">${m.d} · ${m.loc}</div></div>
+        </div>
+        <div class="mface mback">
+          <div class="heart">❤️ ${m.t}</div>
+          <div class="desc">💭 ${m.desc}</div>
+          <div class="meta"><span>📅 ${m.d}</span><span>📍 ${m.loc}</span><span>🕒 ${m.time}</span></div>
+        </div>
+        <button class="flip-hint" type="button" aria-label="Show memory details">↻ Details</button>
+      </div>`;
+    const likeBtn = card.querySelector('.like-btn');
+    likeBtn.addEventListener('click', ev=>{
+      ev.stopPropagation(); m.fav=!m.fav; likeBtn.classList.toggle('liked', m.fav);
+      likeBtn.textContent = m.fav? '♥':'♡'; persist();
+    });
+    const flipHint = card.querySelector('.flip-hint');
+    flipHint.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      card.classList.toggle('flipped');
+    });
+    card.querySelector('.mcard-inner').addEventListener('click', ev=>{
+      if(ev.target===likeBtn || ev.target===flipHint) return;
+      if(card.classList.contains('flipped')){
+        card.classList.remove('flipped');
+        card.classList.remove('viewing');
+      }else if(card.classList.contains('viewing')){
+        card.classList.remove('viewing');
+        card.classList.add('flipped');
+      }else{
+        card.classList.add('viewing');
+      }
+    });
+    card.querySelector('.mfront img').addEventListener('dblclick', ev=>{ ev.stopPropagation(); openLightbox(idx); });
+    galleryGrid.appendChild(card);
+  });
+  // scroll reveal
+  requestAnimationFrame(()=>observeCards());
+}
+let io;
+function observeCards(){
+  if(io) io.disconnect();
+  io = new IntersectionObserver((entries)=>{
+    entries.forEach((entry,i)=>{
+      if(entry.isIntersecting){
+        setTimeout(()=> entry.target.classList.add('in'), i*70);
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold:.12});
+  document.querySelectorAll('.mcard').forEach(c=>io.observe(c));
+}
+renderGallery();
+
+document.getElementById('uploadBtn').addEventListener('click', ()=>{
+  const input = document.createElement('input'); input.type='file'; input.accept='image/*';
+  input.addEventListener('change', ()=>{
+    const name = input.files[0]? input.files[0].name.replace(/\.[^.]+$/,'') : 'New Memory';
+    const nm = {id:'u'+Date.now(), t:name||'New Memory', cat:'Special Moments', d:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),
+      loc:'Unknown', desc:'A newly added memory — edit this description any time.', time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+      img: makePlaceholder(name||'New', memories.length+5), fav:false, deleted:false, deletedAt:null};
+    memories.unshift(nm); persist(); renderGallery();
+    toast('Photo uploaded to your archive');
+  });
+  input.click();
+});
+
+/* Recycle bin */
+document.getElementById('binBtn').addEventListener('click', ()=> openBin());
+function openBin(){
+  const deleted = memories.filter(m=>m.deleted);
+  const overlay = document.createElement('div'); overlay.className='panel-overlay show';
+  overlay.innerHTML = `<div class="panel" style="width:min(560px,92vw);text-align:left;max-height:80vh;overflow:auto;">
+    <h3 style="text-align:center;">Recycle Bin</h3>
+    <div id="binList"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
+      <button class="btn ghost small" id="closeBin"><span>Close</span></button>
+      <button class="btn small" id="emptyBin"><span>Empty Bin</span></button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  function refreshBin(){
+    const list = overlay.querySelector('#binList'); list.innerHTML='';
+    const del = memories.filter(m=>m.deleted);
+    if(!del.length){ list.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Nothing in the recycle bin.</p>'; return; }
+    del.forEach(m=>{
+      const row = document.createElement('div'); row.className='bin-item';
+      row.innerHTML = `<img src="${m.img}"><div class="meta"><div class="n">${m.t}</div><div class="d">Deleted ${m.deletedAt}</div></div>
+        <div class="bin-actions"><button class="btn small ghost" data-a="restore">Restore</button><button class="btn small" data-a="del">Delete</button></div>`;
+      row.querySelector('[data-a="restore"]').addEventListener('click', ()=>{ m.deleted=false; persist(); refreshBin(); renderGallery(); toast('Restored'); });
+      row.querySelector('[data-a="del"]').addEventListener('click', ()=>{
+        if(confirm('Permanently delete this memory? This cannot be undone.')){ memories = memories.filter(x=>x.id!==m.id); persist(); refreshBin(); toast('Permanently deleted'); }
+      });
+      list.appendChild(row);
+    });
+  }
+  refreshBin();
+  overlay.querySelector('#closeBin').addEventListener('click', ()=>overlay.remove());
+  overlay.querySelector('#emptyBin').addEventListener('click', ()=>{
+    if(confirm('Permanently delete everything in the recycle bin?')){ memories = memories.filter(m=>!m.deleted); persist(); refreshBin(); toast('Recycle bin emptied'); }
+  });
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+}
+// allow deleting from lightbox
+function deleteMemory(id){
+  const m = memories.find(x=>x.id===id); if(!m) return;
+  m.deleted=true; m.deletedAt = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  persist(); renderGallery(); toast('Moved to Recycle Bin');
+}
+
+/* ============================================================
+   LIGHTBOX
+============================================================ */
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbCaption = document.getElementById('lbCaption');
+let lbIndex=0, lbZoom=1, lbCustomImage=null;
+function openCustomLightbox(src, alt, caption){
+  lbZoom=1;
+  lbCustomImage={src, alt, caption};
+  updateLightbox();
+  lightbox.classList.add('show');
+}
+function openLightbox(idx){
+  const list = memories.filter(m=>!m.deleted);
+  lbCustomImage=null;
+  visibleList = visibleList.length? visibleList : list;
+  lbIndex = idx; lbZoom=1;
+  updateLightbox();
+  lightbox.classList.add('show');
+}
+function currentLbList(){ return visibleList.length? visibleList : memories.filter(m=>!m.deleted); }
+function updateLightbox(){
+  if(lbCustomImage){
+    lbImg.src=lbCustomImage.src; lbImg.alt=lbCustomImage.alt; lbImg.style.transform = `scale(${lbZoom})`;
+    lbCaption.textContent=lbCustomImage.caption;
+    return;
+  }
+  const list = currentLbList();
+  const m = list[(lbIndex+list.length)%list.length];
+  lbImg.src = m.img; lbImg.style.transform = `scale(${lbZoom})`;
+  lbCaption.textContent = `${m.t} — ${m.d} · ${m.loc}`;
+}
+document.getElementById('lbClose').addEventListener('click', ()=>lightbox.classList.remove('show'));
+document.getElementById('lbPrev').addEventListener('click', ()=>{ lbIndex--; lbZoom=1; updateLightbox(); });
+document.getElementById('lbNext').addEventListener('click', ()=>{ lbIndex++; lbZoom=1; updateLightbox(); });
+document.getElementById('lbZoomIn').addEventListener('click', ()=>{ lbZoom=Math.min(3,lbZoom+.3); updateLightbox(); });
+document.getElementById('lbZoomOut').addEventListener('click', ()=>{ lbZoom=Math.max(.6,lbZoom-.3); updateLightbox(); });
+document.getElementById('lbZoomReset').addEventListener('click', ()=>{ lbZoom=1; updateLightbox(); });
+lbImg.addEventListener('dblclick', ev=>{
+  ev.stopPropagation();
+  lbZoom=lbZoom>1 ? 1 : 2;
+  updateLightbox();
+});
+lightbox.addEventListener('click', e=>{ if(e.target===lightbox) lightbox.classList.remove('show'); });
+document.getElementById('aboutImg').addEventListener('click', ()=>{
+  const image=document.getElementById('aboutImg');
+  openCustomLightbox(image.src, image.alt, 'Our Story');
+});
+document.addEventListener('keydown', e=>{
+  if(!lightbox.classList.contains('show')) return;
+  if(e.key==='Escape') lightbox.classList.remove('show');
+  if(e.key==='ArrowLeft') document.getElementById('lbPrev').click();
+  if(e.key==='ArrowRight') document.getElementById('lbNext').click();
+});
+// swipe on mobile
+let touchStartX=null;
+lightbox.addEventListener('touchstart', e=> touchStartX = e.touches[0].clientX, {passive:true});
+lightbox.addEventListener('touchend', e=>{
+  if(touchStartX===null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx)>50){ dx>0? document.getElementById('lbPrev').click() : document.getElementById('lbNext').click(); }
+  touchStartX=null;
+});
+
+/* ============================================================
+   CREATE A MEMORY / COLLAGE BUILDER
+============================================================ */
+const layoutChips = document.getElementById('layoutChips');
+const LAYOUTS = ['Grid','Polaroid','Film Strip','Vertical Stack','Split Frame','Contact Sheet','Editorial'];
+let activeLayout='Grid';
+LAYOUTS.forEach(l=>{
+  const c = document.createElement('button'); c.className='chip'+(l===activeLayout?' active':''); c.textContent=l;
+  c.addEventListener('click', ()=>{ activeLayout=l; [...layoutChips.children].forEach(x=>x.classList.remove('active')); c.classList.add('active'); drawCollage(); });
+  layoutChips.appendChild(c);
+});
+const collageCanvas = document.getElementById('collageCanvas');
+const ctxC = collageCanvas.getContext('2d');
+const collagePhotoInput = document.getElementById('collagePhotoInput');
+const collageUploadDrop = document.getElementById('collageUploadDrop');
+const collagePhotoCount = document.getElementById('collagePhotoCount');
+const collagePhotoList = document.getElementById('collagePhotoList');
+const laptopStage = document.querySelector('.laptop-stage');
+const collageViewer = document.getElementById('collageViewer');
+const collageViewerImg = document.getElementById('collageViewerImg');
+const collageViewerClose = document.getElementById('collageViewerClose');
+let previewDevice = 'laptop';
+let collagePhotos = [];
+let collagePhotoRegions = [];
+function loadImg(src){ return new Promise(res=>{ const im = new Image(); im.onload=()=>res(im); im.src=src; }); }
+async function drawCollage(){
+  const W=collageCanvas.width, H=collageCanvas.height;
+  collagePhotoRegions = [];
+  ctxC.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-2') || '#171425';
+  ctxC.fillRect(0,0,W,H);
+  const pics = collagePhotos.length ? collagePhotos.slice(0,8) : memories.filter(m=>!m.deleted).slice(0,4).map(m=>({src:m.img,zoom:1}));
+  const selectedPics = pics.slice(0,4);
+  const imgs = await Promise.all(selectedPics.map(photo=>loadImg(photo.src)));
+  const drawPhoto = (im,photo,x,y,w,h,regionX=x,regionY=y)=>{
+    collagePhotoRegions.push({src:photo.src,x:regionX,y:regionY,w,h});
+    drawCover(im,x,y,w,h,photo.zoom);
+  };
+  if(activeLayout==='Grid'){
+    const pad=14, cw=(W-pad*3)/2, ch=(H-pad*3)/2;
+    imgs.slice(0,4).forEach((im,i)=>{ const x=pad+(i%2)*(cw+pad), y=pad+Math.floor(i/2)*(ch+pad); drawPhoto(im,selectedPics[i],x,y,cw,ch); });
+  } else if(activeLayout==='Polaroid'){
+    imgs.slice(0,4).forEach((im,i)=>{
+      const w=Math.min(210,W*.31),h=w, x= 28 + i*(W-w-56)/3, y= 60 + (i%2)*60, rot=(i-1.5)*0.06;
+      ctxC.save(); ctxC.translate(x+w/2,y+h/2+30); ctxC.rotate(rot);
+      ctxC.fillStyle='#fff'; ctxC.fillRect(-w/2-10,-h/2-10,w+20,h+50);
+      drawPhoto(im,selectedPics[i],-w/2,-h/2,w,h,x,y+30);
+      ctxC.restore();
+    });
+  } else if(activeLayout==='Film Strip'){
+    const h=H-40, w=(W-40-3*10)/4;
+    imgs.slice(0,4).forEach((im,i)=>{ const x=20+i*(w+10); ctxC.fillStyle='#000'; ctxC.fillRect(x-6,10,w+12,h+20); drawPhoto(im,selectedPics[i],x,20,w,h); });
+  } else if(activeLayout==='Split Frame'){
+    if(imgs[0]) drawPhoto(imgs[0],selectedPics[0],16,16,W*.56-22,H-32);
+    imgs.slice(1,4).forEach((im,i)=>drawPhoto(im,selectedPics[i+1],W*.56+6,16+i*((H-44)/3+8),W*.44-22,(H-44)/3));
+  } else if(activeLayout==='Contact Sheet'){
+    const cols=3, rows=2, gap=12, w=(W-gap*(cols+1))/cols, h=(H-gap*(rows+1))/rows;
+    imgs.forEach((im,i)=>drawPhoto(im,selectedPics[i],gap+(i%cols)*(w+gap),gap+Math.floor(i/cols)*(h+gap),w,h));
+  } else if(activeLayout==='Editorial'){
+    if(imgs[0]) drawPhoto(imgs[0],selectedPics[0],18,18,W-36,H*.62);
+    imgs.slice(1,4).forEach((im,i)=>drawPhoto(im,selectedPics[i+1],18+i*((W-48)/3+6),H*.68,(W-48)/3, H*.24));
+  } else {
+    const h=(H-50)/4;
+    imgs.slice(0,4).forEach((im,i)=>{ drawPhoto(im,selectedPics[i], W*0.2, 10+i*(h+8), W*0.6, h); });
+  }
+  function drawCover(im,x,y,w,h,zoom=1){
+    const ir = im.width/im.height, r = w/h;
+    let sx,sy,sw,sh;
+    if(ir>r){ sh=im.height; sw=sh*r; sx=(im.width-sw)/2; sy=0; } else { sw=im.width; sh=sw/r; sx=0; sy=(im.height-sh)/2; }
+    const cropW=sw/zoom, cropH=sh/zoom; sx+=(sw-cropW)/2; sy+=(sh-cropH)/2; sw=cropW; sh=cropH;
+    ctxC.drawImage(im, sx,sy,sw,sh, x,y,w,h);
+  }
+}
+function updateCollagePhotoCount(){
+  collagePhotoCount.textContent = collagePhotos.length ? `${collagePhotos.length} device photo${collagePhotos.length===1?'':'s'} selected` : 'Using archive photographs';
+  collagePhotoList.innerHTML='';
+  collagePhotos.forEach((photo,index)=>{
+    const item=document.createElement('div'); item.className='collage-photo-item'; item.style.setProperty('--photo-zoom',photo.zoom);
+    item.innerHTML=`<img src="${photo.src}" alt="Selected photograph ${index+1}"><div class="collage-photo-actions"><button type="button" data-action="zoom-out" aria-label="Zoom out">−</button><button type="button" data-action="zoom-in" aria-label="Zoom in">+</button><button type="button" class="remove-photo" data-action="remove" aria-label="Remove photograph">×</button></div>`;
+    item.querySelector('img').addEventListener('click',event=>{
+      event.stopPropagation();
+      collageViewerImg.src=photo.src;
+      collageViewer.classList.add('show');
+    });
+    item.addEventListener('click',event=>{
+      const action=event.target.closest('button')?.dataset.action;
+      if(!action) return;
+      if(action==='remove') collagePhotos.splice(index,1);
+      if(action==='zoom-in') collagePhotos[index].zoom=Math.min(2.5,collagePhotos[index].zoom+.2);
+      if(action==='zoom-out') collagePhotos[index].zoom=Math.max(1,collagePhotos[index].zoom-.2);
+      updateCollagePhotoCount(); drawCollage();
+    });
+    collagePhotoList.appendChild(item);
+  });
+}
+function readCollageFiles(files){
+  const images = [...files].filter(file=>file.type.startsWith('image/')).slice(0,8);
+  if(!images.length){ toast('Please choose image files'); return; }
+  Promise.all(images.map(file=>new Promise(resolve=>{ const reader=new FileReader(); reader.onload=event=>resolve(event.target.result); reader.readAsDataURL(file); }))).then(results=>{
+    collagePhotos = results.map(src=>({src,zoom:1}));
+    updateCollagePhotoCount();
+    drawCollage();
+    toast(`${results.length} photograph${results.length===1?'':'s'} added to the keepsake`);
+  });
+}
+collagePhotoInput.addEventListener('change', ()=>readCollageFiles(collagePhotoInput.files));
+['dragenter','dragover'].forEach(eventName=>collageUploadDrop.addEventListener(eventName, event=>{ event.preventDefault(); collageUploadDrop.classList.add('dragover'); }));
+['dragleave','drop'].forEach(eventName=>collageUploadDrop.addEventListener(eventName, event=>{ event.preventDefault(); collageUploadDrop.classList.remove('dragover'); }));
+collageUploadDrop.addEventListener('drop', event=>readCollageFiles(event.dataTransfer.files));
+updateCollagePhotoCount();
+drawCollage();
+function setPreviewDevice(device){
+  previewDevice=device;
+  laptopStage.classList.toggle('mobile-mode', device==='mobile');
+  collageCanvas.width=device==='mobile'?360:640;
+  collageCanvas.height=device==='mobile'?640:400;
+  document.querySelectorAll('[data-preview]').forEach(button=>button.classList.toggle('active',button.dataset.preview===device));
+  drawCollage();
+}
+document.querySelectorAll('[data-preview]').forEach(button=>button.addEventListener('click',()=>setPreviewDevice(button.dataset.preview)));
+document.querySelector('.laptop-screen').addEventListener('click',event=>{
+  const bounds=collageCanvas.getBoundingClientRect();
+  const x=(event.clientX-bounds.left)*collageCanvas.width/bounds.width;
+  const y=(event.clientY-bounds.top)*collageCanvas.height/bounds.height;
+  const region=[...collagePhotoRegions].reverse().find(item=>x>=item.x&&x<=item.x+item.w&&y>=item.y&&y<=item.y+item.h);
+  collageViewerImg.src=region?.src || collageCanvas.toDataURL('image/png');
+  collageViewer.classList.add('show');
+});
+function closeCollageViewer(){ collageViewer.classList.remove('show'); }
+collageViewerClose.addEventListener('click',closeCollageViewer);
+collageViewer.addEventListener('click',event=>{ if(event.target===collageViewer) closeCollageViewer(); });
+document.addEventListener('keydown',event=>{ if(event.key==='Escape') closeCollageViewer(); });
+document.getElementById('downloadCollage').addEventListener('click', ()=>{
+  const link = document.createElement('a'); link.download='memora-composition.png'; link.href = collageCanvas.toDataURL('image/png'); link.click();
+  toast('Composition downloaded');
+});
+
+/* ============================================================
+   MEMORY TIME CAPSULE
+============================================================ */
+const capsuleCanvas=document.getElementById('capsuleCanvas'),capsuleCtx=capsuleCanvas.getContext('2d'),capsuleTitle=document.getElementById('capsuleTitle'),capsuleLetter=document.getElementById('capsuleLetter'),capsuleDate=document.getElementById('capsuleDate'),capsuleSource=document.getElementById('capsuleSource');
+let capsuleMemory=memories.find(m=>!m.deleted)||null,capsuleMood='Tender',capsuleEmoji='❤️',capsuleTreatment='paper';
+capsuleDate.value=new Date().toISOString().slice(0,10);
+function capsuleDateLabel(){const date=new Date(`${capsuleDate.value||new Date().toISOString().slice(0,10)}T12:00:00`);return date.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});}
+function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight,maxLines){const words=text.split(/\s+/);let line='',lines=[];words.forEach(word=>{const test=line?`${line} ${word}`:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}else line=test;});if(line)lines.push(line);lines.slice(0,maxLines).forEach((item,i)=>ctx.fillText(item,x,y+i*lineHeight));}
+function drawCanvasCover(image,x,y,w,h){const r=w/h,ir=image.width/image.height;let sx=0,sy=0,sw=image.width,sh=image.height;if(ir>r){sw=image.height*r;sx=(image.width-sw)/2;}else{sh=image.width/r;sy=(image.height-sh)/2;}capsuleCtx.drawImage(image,sx,sy,sw,sh,x,y,w,h);}
+function finishCapsuleText(ink){capsuleCtx.fillStyle=ink;capsuleCtx.textAlign='left';capsuleCtx.font='italic 27px Fraunces';wrapCanvasText(capsuleCtx,capsuleLetter.value.trim()||'Some days become part of us quietly.',86,824,capsuleCanvas.width-172,38,4);capsuleCtx.font='600 16px Manrope';capsuleCtx.fillText(`${capsuleEmoji}  ${capsuleMood.toUpperCase()}`,86,1030);capsuleCtx.textAlign='right';capsuleCtx.font='400 16px Manrope';capsuleCtx.fillText(capsuleMemory?capsuleMemory.t:'An untitled memory',capsuleCanvas.width-86,1030);}
+function drawCapsule(){const W=capsuleCanvas.width,H=capsuleCanvas.height,isNight=capsuleTreatment==='night',paper=isNight?'#171522':capsuleMood==='Wild'?'#e2b78c':capsuleMood==='Joyful'?'#ead59c':capsuleMood==='Quiet'?'#c7d0c4':'#ead9c2',ink=isNight?'#f4eee2':'#241d1a';capsuleCtx.fillStyle=paper;capsuleCtx.fillRect(0,0,W,H);capsuleCtx.fillStyle=isNight?'rgba(255,255,255,.04)':'rgba(255,255,255,.22)';capsuleCtx.fillRect(38,38,W-76,H-76);capsuleCtx.strokeStyle=isNight?'rgba(244,238,226,.32)':'rgba(36,29,26,.28)';capsuleCtx.lineWidth=2;capsuleCtx.strokeRect(58,58,W-116,H-116);capsuleCtx.fillStyle=ink;capsuleCtx.textAlign='left';capsuleCtx.font='600 22px Manrope';capsuleCtx.fillText('MEMORA / TIME CAPSULE',86,112);capsuleCtx.textAlign='right';capsuleCtx.font='500 18px Manrope';capsuleCtx.fillText(capsuleDateLabel(),W-86,112);capsuleCtx.textAlign='left';capsuleCtx.font='450 58px Fraunces';wrapCanvasText(capsuleCtx,capsuleTitle.value.trim()||'A moment worth keeping',86,190,W-172,70,3);if(capsuleMemory){const image=new Image();image.onload=()=>{capsuleCtx.save();capsuleCtx.beginPath();capsuleCtx.rect(86,330,W-172,430);capsuleCtx.clip();drawCanvasCover(image,86,330,W-172,430);if(capsuleTreatment==='film'){capsuleCtx.fillStyle='rgba(224,174,102,.16)';capsuleCtx.fillRect(86,330,W-172,430);}capsuleCtx.restore();finishCapsuleText(ink);};image.src=capsuleMemory.img;}else finishCapsuleText(ink);}
+function renderCapsuleSources(){capsuleSource.innerHTML='';memories.filter(m=>!m.deleted).slice(0,8).forEach(memory=>{const button=document.createElement('button');button.className=memory.id===capsuleMemory?.id?'active':'';button.title=memory.t;button.innerHTML=`<img src="${memory.img}" alt="${memory.t}">`;button.addEventListener('click',()=>{capsuleMemory=memory;[...capsuleSource.children].forEach(item=>item.classList.remove('active'));button.classList.add('active');drawCapsule();});capsuleSource.appendChild(button);});}
+document.querySelectorAll('.capsule-mood').forEach(button=>button.addEventListener('click',()=>{capsuleMood=button.dataset.mood;capsuleEmoji=button.dataset.emoji;document.querySelectorAll('.capsule-mood').forEach(item=>item.classList.remove('active'));button.classList.add('active');drawCapsule();}));
+document.querySelectorAll('.capsule-spark').forEach(button=>button.addEventListener('click',()=>{capsuleLetter.value=capsuleLetter.value.trim()+(capsuleLetter.value.trim()?' ':'')+button.dataset.spark;capsuleLetter.focus();drawCapsule();}));
+document.querySelectorAll('.capsule-treatment').forEach(button=>button.addEventListener('click',()=>{capsuleTreatment=button.dataset.treatment;document.querySelectorAll('.capsule-treatment').forEach(item=>item.classList.remove('active'));button.classList.add('active');drawCapsule();}));
+[capsuleTitle,capsuleLetter,capsuleDate].forEach(input=>input.addEventListener('input',drawCapsule));
+document.getElementById('downloadCapsule').addEventListener('click',()=>{const link=document.createElement('a');link.download='memora-time-capsule.png';link.href=capsuleCanvas.toDataURL('image/png');link.click();toast('Keepsake downloaded');});
+document.getElementById('saveCapsule').addEventListener('click',()=>{if(!capsuleMemory){toast('Choose a photograph first');return;}memories.unshift({id:'capsule'+Date.now(),t:capsuleTitle.value.trim()||'Time Capsule',cat:'Special Moments',d:capsuleDateLabel(),loc:'Memora Time Capsule',desc:capsuleLetter.value.trim()||'A keepsake made in Memora.',time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),img:capsuleCanvas.toDataURL('image/png'),fav:false,deleted:false,deletedAt:null});persist();renderGallery();toast('Time capsule saved to Memora');});
+renderCapsuleSources();drawCapsule();
+
+/* ============================================================
+   ABOUT image
+============================================================ */
+document.getElementById('heroBackdropImg').src = 'images/family2.jpg';
+document.getElementById('aboutImg').src = 'images/family2.jpg';
+
+/* ============================================================
+   FOOTER illumination on reach
+============================================================ */
+const footer = document.getElementById('siteFooter');
+new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{ if(en.isIntersecting) footer.classList.add('lit'); });
+}, {threshold:.4}).observe(footer);
+
+})();
+</script>
+</body>
+</html>
