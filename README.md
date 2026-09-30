@@ -3,7 +3,7 @@
 Every Frame Holds a Story. MEMORA is a family memory and photo archive website designed to preserve family photographs, memories, relationships, and special moments in one beautiful digital space.
 
 ## 🔗 Live Demo
-You can view the live project here: [Live Demo](https://your-live-demo-link-here.com)
+You can view the live project here: [Live Demo](https://sudha1305.github.io/Memora/)
 
 ## Features
 * Cinematic landing page
